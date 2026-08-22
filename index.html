@@ -457,6 +457,13 @@ const player = {
 
     speed: 12,
 
+      hitboxWidth: 100,
+
+hitboxHeight: 150,
+
+hitboxOffsetX: 100,
+
+hitboxOffsetY: 180,
     emoji: "😎"
 
 };
@@ -762,8 +769,8 @@ function shoot() {
 
 function spawnEnemy() {
 
-        const width = 120;
-    const height = 150;
+        const width = 220;
+    const height = 280;
 
     enemies.push({
 
@@ -955,7 +962,7 @@ function update() {
         0.003
     ) {
 
-        spawnObstacle();
+      //  spawnObstacle();
 
     }
 
@@ -1365,19 +1372,53 @@ function spawnBoss() {
 
 function collision(a, b) {
 
+    const aWidth =
+        a.hitboxWidth || a.width;
+
+    const aHeight =
+        a.hitboxHeight || a.height;
+
+    const aX =
+        a.hitboxOffsetX
+            ? a.x + a.hitboxOffsetX
+            : a.x;
+
+    const aY =
+        a.hitboxOffsetY
+            ? a.y + a.hitboxOffsetY
+            : a.y;
+
+
+    const bWidth =
+        b.hitboxWidth || b.width;
+
+    const bHeight =
+        b.hitboxHeight || b.height;
+
+    const bX =
+        b.hitboxOffsetX
+            ? b.x + b.hitboxOffsetX
+            : b.x;
+
+    const bY =
+        b.hitboxOffsetY
+            ? b.y + b.hitboxOffsetY
+            : b.y;
+
+
     return (
 
-        a.x <
-        b.x + b.width &&
+        aX <
+        bX + bWidth &&
 
-        a.x + a.width >
-        b.x &&
+        aX + aWidth >
+        bX &&
 
-        a.y <
-        b.y + b.height &&
+        aY <
+        bY + bHeight &&
 
-        a.y + a.height >
-        b.y
+        aY + aHeight >
+        bY
 
     );
 
