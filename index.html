@@ -1904,6 +1904,9 @@ function updateHUD() {
 
 function endGame() {
 
+       deathSound.currentTime = 0;
+    deathSound.play();
+
     gameRunning = false;
 
     paused = false;
