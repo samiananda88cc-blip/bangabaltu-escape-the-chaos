@@ -441,6 +441,9 @@ let highScore =
 ========================================================= */
 const playerImage = new Image();
 playerImage.src = "assets/player.png";
+
+      const enemyImage = new Image();
+enemyImage.src = "assets/enemy.png";
       
 const player = {
 
@@ -759,43 +762,8 @@ function shoot() {
 
 function spawnEnemy() {
 
-    const types = [
-
-        {
-            emoji: "🤡",
-            color: "#ff4444",
-            hp: 1
-        },
-
-        {
-            emoji: "😈",
-            color: "#9b4dff",
-            hp: 2
-        },
-
-        {
-            emoji: "🤪",
-            color: "#ff8c00",
-            hp: 1
-        },
-
-        {
-            emoji: "👨‍🏫",
-            color: "#008cff",
-            hp: 3
-        }
-
-    ];
-
-    const type =
-        types[
-            Math.floor(
-                Math.random() *
-                types.length
-            )
-        ];
-
-    const width = 90;
+        const width = 120;
+    const height = 150;
 
     enemies.push({
 
@@ -803,27 +771,29 @@ function spawnEnemy() {
             Math.random() *
             (GAME_WIDTH - width),
 
-        y: -130,
+        y: -180,
 
         width: width,
 
-        height: 110,
+        height: height,
 
         speed:
             gameSpeed *
             (0.7 + Math.random() * 0.6),
 
-        hp: type.hp,
+        hp: 1,
 
-        maxHp: type.hp,
+        maxHp: 1,
 
-        emoji: type.emoji,
-
-        color: type.color
+        image: enemyImage
 
     });
 
 }
+
+    ;
+
+   
 
 
 /* =========================================================
@@ -957,8 +927,8 @@ function update() {
     if (
         spawnTimer >
         Math.max(
-            18,
-            60 - gameSpeed * 2
+            55,
+            100 - gameSpeed * 3
         )
     ) {
 
@@ -1659,64 +1629,14 @@ function drawEnemies() {
 
             ctx.save();
 
-            ctx.textAlign =
-                "center";
+            if (enemy.image.complete) {
 
-            ctx.textBaseline =
-                "middle";
-
-            ctx.font =
-                enemy.boss
-                ? "180px Arial"
-                : "80px Arial";
-
-            ctx.fillText(
-
-                enemy.emoji,
-
-                enemy.x +
-                enemy.width / 2,
-
-                enemy.y +
-                enemy.height / 2
-
-            );
-
-
-            /* HP bar */
-
-            if (
-                enemy.maxHp > 1
-            ) {
-
-                const barWidth =
-                    enemy.width;
-
-                const hpWidth =
-                    barWidth *
-                    (
-                        enemy.hp /
-                        enemy.maxHp
-                    );
-
-                ctx.fillStyle =
-                    "#333";
-
-                ctx.fillRect(
+                ctx.drawImage(
+                    enemy.image,
                     enemy.x,
-                    enemy.y - 15,
-                    barWidth,
-                    10
-                );
-
-                ctx.fillStyle =
-                    "#ff2222";
-
-                ctx.fillRect(
-                    enemy.x,
-                    enemy.y - 15,
-                    hpWidth,
-                    10
+                    enemy.y,
+                    enemy.width,
+                    enemy.height
                 );
 
             }
