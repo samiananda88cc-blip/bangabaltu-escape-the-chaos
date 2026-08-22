@@ -439,7 +439,9 @@ let highScore =
 /* =========================================================
    PLAYER
 ========================================================= */
-
+const playerImage = new Image();
+playerImage.src = "assets/player.png";
+      
 const player = {
 
     x: GAME_WIDTH / 2 - 45,
@@ -1590,23 +1592,17 @@ function drawPlayer() {
 
     ctx.save();
 
-    ctx.font = "85px Arial";
+    if (playerImage.complete) {
 
-    ctx.textAlign =
-        "center";
-
-    ctx.textBaseline =
-        "middle";
-
-    ctx.fillText(
-        player.emoji,
-
-        player.x +
-        player.width / 2,
-
-        player.y +
-        player.height / 2
+    ctx.drawImage(
+        playerImage,
+        player.x,
+        player.y,
+        player.width,
+        player.height
     );
+
+}
 
 
     /* Gun */
