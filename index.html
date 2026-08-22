@@ -1,0 +1,2096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width,
+      initial-scale=1.0,
+      maximum-scale=1.0,
+      user-scalable=no">
+
+<title>Bangabaltu: Escape the Chaos</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #050505;
+    font-family: Arial, sans-serif;
+    touch-action: none;
+}
+
+#gameContainer {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #111;
+}
+
+canvas {
+    display: block;
+    background: #222;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* ---------------- HUD ---------------- */
+
+#hud {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+
+    pointer-events: none;
+
+    text-shadow:
+        2px 2px 3px #000;
+}
+
+.hudBox {
+    background: rgba(0,0,0,0.55);
+    padding: 8px 12px;
+    border-radius: 10px;
+}
+
+/* ---------------- MENU ---------------- */
+
+.screen {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+    align-items: center;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(255,70,70,0.15),
+            rgba(0,0,0,0.94)
+        );
+
+    color: white;
+
+    text-align: center;
+
+    z-index: 20;
+}
+
+.screen h1 {
+    font-size: clamp(32px, 8vw, 65px);
+    margin-bottom: 12px;
+
+    color: #ff3b3b;
+
+    text-shadow:
+        0 0 15px rgba(255,0,0,0.6);
+}
+
+.screen h2 {
+    margin-bottom: 10px;
+}
+
+.screen p {
+    max-width: 500px;
+    padding: 0 20px;
+    margin-bottom: 20px;
+
+    color: #ddd;
+    line-height: 1.5;
+}
+
+button {
+    border: none;
+
+    padding: 14px 28px;
+
+    border-radius: 12px;
+
+    background: #ff3030;
+
+    color: white;
+
+    font-size: 20px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 5px 15px rgba(255,0,0,0.3);
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ---------------- MOBILE CONTROLS ---------------- */
+
+#controls {
+    position: absolute;
+
+    bottom: 20px;
+    left: 0;
+    right: 0;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    padding: 0 20px;
+
+    pointer-events: none;
+}
+
+.controlGroup {
+    display: flex;
+    gap: 12px;
+}
+
+.controlButton {
+    width: 65px;
+    height: 65px;
+
+    border-radius: 50%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: rgba(0,0,0,0.65);
+
+    border: 2px solid rgba(255,255,255,0.4);
+
+    color: white;
+
+    font-size: 25px;
+
+    pointer-events: auto;
+
+    user-select: none;
+}
+
+#shootButton {
+    background: rgba(220,30,30,0.8);
+
+    width: 80px;
+    height: 80px;
+}
+
+#pauseButton {
+    position: absolute;
+
+    top: 60px;
+    right: 12px;
+
+    width: 45px;
+    height: 45px;
+
+    border-radius: 10px;
+
+    font-size: 18px;
+
+    background: rgba(0,0,0,0.6);
+
+    color: white;
+
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="gameContainer">
+
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- HUD -->
+
+    <div id="hud">
+
+        <div class="hudBox">
+            SCORE: <span id="score">0</span>
+        </div>
+
+        <div class="hudBox">
+            ❤️ <span id="lives">3</span>
+        </div>
+
+        <div class="hudBox">
+            🪙 <span id="coins">0</span>
+        </div>
+
+    </div>
+
+    <!-- PAUSE -->
+
+    <button id="pauseButton">Ⅱ</button>
+
+    <!-- MOBILE CONTROLS -->
+
+    <div id="controls">
+
+        <div class="controlGroup">
+
+            <div
+                class="controlButton"
+                id="leftButton">
+                ◀
+            </div>
+
+            <div
+                class="controlButton"
+                id="rightButton">
+                ▶
+            </div>
+
+        </div>
+
+        <div
+            class="controlButton"
+            id="shootButton">
+            🔫
+        </div>
+
+    </div>
+
+
+    <!-- START SCREEN -->
+
+    <div id="startScreen" class="screen">
+
+        <h1>Bangabaltu</h1>
+
+        <h2>Escape the Chaos</h2>
+
+        <p>
+            Survive the chaos, dodge enemies,
+            shoot everyone and collect coins!
+        </p>
+
+        <p>
+            🎮 PC: Arrow Keys + Space<br>
+            📱 Mobile: Buttons / Tap
+        </p>
+
+        <button id="startButton">
+            START GAME
+        </button>
+
+    </div>
+
+
+    <!-- GAME OVER -->
+
+    <div id="gameOverScreen" class="screen hidden">
+
+        <h1>GAME OVER</h1>
+
+        <h2>
+            Final Score:
+            <span id="finalScore">0</span>
+        </h2>
+
+        <p>
+            🏆 High Score:
+            <span id="highScore">0</span>
+        </p>
+
+        <button id="restartButton">
+            PLAY AGAIN
+        </button>
+
+    </div>
+
+
+    <!-- PAUSE SCREEN -->
+
+    <div id="pauseScreen" class="screen hidden">
+
+        <h1>PAUSED</h1>
+
+        <p>
+            Chaos temporarily stopped.
+        </p>
+
+        <button id="resumeButton">
+            RESUME
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   CANVAS SETUP
+========================================================= */
+
+const canvas =
+    document.getElementById("gameCanvas");
+
+const ctx =
+    canvas.getContext("2d");
+
+
+/* =========================================================
+   GAME SIZE
+========================================================= */
+
+const GAME_WIDTH = 900;
+const GAME_HEIGHT = 1600;
+
+canvas.width = GAME_WIDTH;
+canvas.height = GAME_HEIGHT;
+
+
+/* =========================================================
+   UI
+========================================================= */
+
+const scoreText =
+    document.getElementById("score");
+
+const livesText =
+    document.getElementById("lives");
+
+const coinsText =
+    document.getElementById("coins");
+
+const finalScoreText =
+    document.getElementById("finalScore");
+
+const highScoreText =
+    document.getElementById("highScore");
+
+
+/* =========================================================
+   GAME VARIABLES
+========================================================= */
+
+let gameRunning = false;
+
+let paused = false;
+
+let score = 0;
+
+let coins = 0;
+
+let lives = 3;
+
+let gameSpeed = 6;
+
+let spawnTimer = 0;
+
+let coinTimer = 0;
+
+let bossSpawned = false;
+
+let shake = 0;
+
+
+/* =========================================================
+   HIGH SCORE
+========================================================= */
+
+let highScore =
+    Number(localStorage.getItem(
+        "bangabaltuHighScore"
+    )) || 0;
+
+
+/* =========================================================
+   PLAYER
+========================================================= */
+
+const player = {
+
+    x: GAME_WIDTH / 2 - 45,
+
+    y: GAME_HEIGHT - 300,
+
+    width: 90,
+
+    height: 110,
+
+    speed: 12,
+
+    emoji: "😎"
+
+};
+
+
+/* =========================================================
+   ARRAYS
+========================================================= */
+
+let bullets = [];
+
+let enemies = [];
+
+let coinsArray = [];
+
+let particles = [];
+
+let obstacles = [];
+
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+const keys = {};
+
+document.addEventListener(
+    "keydown",
+    (e) => {
+
+        keys[e.key.toLowerCase()] = true;
+
+        if (
+            e.code === "Space" &&
+            gameRunning &&
+            !paused
+        ) {
+
+            shoot();
+
+        }
+
+        if (e.key === "p") {
+
+            togglePause();
+
+        }
+
+    }
+);
+
+
+document.addEventListener(
+    "keyup",
+    (e) => {
+
+        keys[e.key.toLowerCase()] = false;
+
+    }
+);
+
+
+/* =========================================================
+   TOUCH BUTTONS
+========================================================= */
+
+function holdButton(element, key) {
+
+    element.addEventListener(
+        "pointerdown",
+        (e) => {
+
+            e.preventDefault();
+
+            keys[key] = true;
+
+        }
+    );
+
+    element.addEventListener(
+        "pointerup",
+        () => {
+
+            keys[key] = false;
+
+        }
+    );
+
+    element.addEventListener(
+        "pointerleave",
+        () => {
+
+            keys[key] = false;
+
+        }
+    );
+
+}
+
+
+holdButton(
+    document.getElementById("leftButton"),
+    "arrowleft"
+);
+
+holdButton(
+    document.getElementById("rightButton"),
+    "arrowright"
+);
+
+
+/* SHOOT BUTTON */
+
+document
+    .getElementById("shootButton")
+    .addEventListener(
+        "pointerdown",
+        (e) => {
+
+            e.preventDefault();
+
+            if (
+                gameRunning &&
+                !paused
+            ) {
+
+                shoot();
+
+            }
+
+        }
+    );
+
+
+/* =========================================================
+   CANVAS TAP TO SHOOT
+========================================================= */
+
+canvas.addEventListener(
+    "pointerdown",
+    () => {
+
+        if (
+            gameRunning &&
+            !paused
+        ) {
+
+            shoot();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+document
+    .getElementById("startButton")
+    .onclick = startGame;
+
+
+document
+    .getElementById("restartButton")
+    .onclick = startGame;
+
+
+document
+    .getElementById("pauseButton")
+    .onclick = togglePause;
+
+
+document
+    .getElementById("resumeButton")
+    .onclick = togglePause;
+
+
+/* =========================================================
+   START GAME
+========================================================= */
+
+function startGame() {
+
+    gameRunning = true;
+
+    paused = false;
+
+    score = 0;
+
+    coins = 0;
+
+    lives = 3;
+
+    gameSpeed = 6;
+
+    spawnTimer = 0;
+
+    coinTimer = 0;
+
+    bossSpawned = false;
+
+    bullets = [];
+
+    enemies = [];
+
+    coinsArray = [];
+
+    particles = [];
+
+    obstacles = [];
+
+    player.x =
+        GAME_WIDTH / 2 -
+        player.width / 2;
+
+    document
+        .getElementById("startScreen")
+        .classList.add("hidden");
+
+    document
+        .getElementById("gameOverScreen")
+        .classList.add("hidden");
+
+    document
+        .getElementById("pauseScreen")
+        .classList.add("hidden");
+
+    updateHUD();
+
+}
+
+
+/* =========================================================
+   PAUSE
+========================================================= */
+
+function togglePause() {
+
+    if (!gameRunning) {
+
+        return;
+
+    }
+
+    paused = !paused;
+
+    if (paused) {
+
+        document
+            .getElementById("pauseScreen")
+            .classList.remove("hidden");
+
+    } else {
+
+        document
+            .getElementById("pauseScreen")
+            .classList.add("hidden");
+
+    }
+
+}
+
+
+/* =========================================================
+   SHOOT
+========================================================= */
+
+function shoot() {
+
+    bullets.push({
+
+        x:
+            player.x +
+            player.width / 2 -
+            6,
+
+        y:
+            player.y,
+
+        width: 12,
+
+        height: 35,
+
+        speed: 22
+
+    });
+
+    createParticles(
+        player.x + player.width / 2,
+        player.y,
+        "#ffff00",
+        5
+    );
+
+}
+
+
+/* =========================================================
+   SPAWN ENEMY
+========================================================= */
+
+function spawnEnemy() {
+
+    const types = [
+
+        {
+            emoji: "🤡",
+            color: "#ff4444",
+            hp: 1
+        },
+
+        {
+            emoji: "😈",
+            color: "#9b4dff",
+            hp: 2
+        },
+
+        {
+            emoji: "🤪",
+            color: "#ff8c00",
+            hp: 1
+        },
+
+        {
+            emoji: "👨‍🏫",
+            color: "#008cff",
+            hp: 3
+        }
+
+    ];
+
+    const type =
+        types[
+            Math.floor(
+                Math.random() *
+                types.length
+            )
+        ];
+
+    const width = 90;
+
+    enemies.push({
+
+        x:
+            Math.random() *
+            (GAME_WIDTH - width),
+
+        y: -130,
+
+        width: width,
+
+        height: 110,
+
+        speed:
+            gameSpeed *
+            (0.7 + Math.random() * 0.6),
+
+        hp: type.hp,
+
+        maxHp: type.hp,
+
+        emoji: type.emoji,
+
+        color: type.color
+
+    });
+
+}
+
+
+/* =========================================================
+   SPAWN COIN
+========================================================= */
+
+function spawnCoin() {
+
+    coinsArray.push({
+
+        x:
+            50 +
+            Math.random() *
+            (GAME_WIDTH - 100),
+
+        y: -50,
+
+        radius: 25,
+
+        speed: gameSpeed
+
+    });
+
+}
+
+
+/* =========================================================
+   SPAWN OBSTACLE
+========================================================= */
+
+function spawnObstacle() {
+
+    obstacles.push({
+
+        x:
+            Math.random() *
+            (GAME_WIDTH - 100),
+
+        y: -100,
+
+        width: 100,
+
+        height: 100,
+
+        speed: gameSpeed,
+
+        emoji: "🚌"
+
+    });
+
+}
+
+
+/* =========================================================
+   UPDATE GAME
+========================================================= */
+
+function update() {
+
+    if (
+        !gameRunning ||
+        paused
+    ) {
+
+        return;
+
+    }
+
+
+    /* ---------------- PLAYER ---------------- */
+
+    if (
+        keys["arrowleft"] ||
+        keys["a"]
+    ) {
+
+        player.x -= player.speed;
+
+    }
+
+
+    if (
+        keys["arrowright"] ||
+        keys["d"]
+    ) {
+
+        player.x += player.speed;
+
+    }
+
+
+    /* Keep player inside screen */
+
+    if (player.x < 0) {
+
+        player.x = 0;
+
+    }
+
+    if (
+        player.x +
+        player.width >
+        GAME_WIDTH
+    ) {
+
+        player.x =
+            GAME_WIDTH -
+            player.width;
+
+    }
+
+
+    /* ---------------- SPEED ---------------- */
+
+    gameSpeed += 0.0015;
+
+    if (gameSpeed > 15) {
+
+        gameSpeed = 15;
+
+    }
+
+
+    /* ---------------- SPAWN ---------------- */
+
+    spawnTimer++;
+
+    coinTimer++;
+
+
+    if (
+        spawnTimer >
+        Math.max(
+            18,
+            60 - gameSpeed * 2
+        )
+    ) {
+
+        spawnEnemy();
+
+        spawnTimer = 0;
+
+    }
+
+
+    if (coinTimer > 45) {
+
+        spawnCoin();
+
+        coinTimer = 0;
+
+    }
+
+
+    /* Occasionally obstacle */
+
+    if (
+        Math.random() <
+        0.003
+    ) {
+
+        spawnObstacle();
+
+    }
+
+
+    /* ---------------- BULLETS ---------------- */
+
+    bullets.forEach(
+        bullet => {
+
+            bullet.y -=
+                bullet.speed;
+
+        }
+    );
+
+
+    bullets =
+        bullets.filter(
+            bullet =>
+                bullet.y >
+                -100
+        );
+
+
+    /* ---------------- ENEMIES ---------------- */
+
+    enemies.forEach(
+        enemy => {
+
+            enemy.y +=
+                enemy.speed;
+
+        }
+    );
+
+
+    /* ---------------- COINS ---------------- */
+
+    coinsArray.forEach(
+        coin => {
+
+            coin.y +=
+                coin.speed;
+
+        }
+    );
+
+
+    /* ---------------- OBSTACLES ---------------- */
+
+    obstacles.forEach(
+        obstacle => {
+
+            obstacle.y +=
+                obstacle.speed;
+
+        }
+    );
+
+
+    /* ---------------- BULLET COLLISION ---------------- */
+
+    for (
+        let i = bullets.length - 1;
+        i >= 0;
+        i--
+    ) {
+
+        const bullet =
+            bullets[i];
+
+        for (
+            let j = enemies.length - 1;
+            j >= 0;
+            j--
+        ) {
+
+            const enemy =
+                enemies[j];
+
+            if (
+                collision(
+                    bullet,
+                    enemy
+                )
+            ) {
+
+                bullets.splice(i, 1);
+
+                enemy.hp--;
+
+                createParticles(
+                    enemy.x +
+                    enemy.width / 2,
+
+                    enemy.y +
+                    enemy.height / 2,
+
+                    "#ff3300",
+
+                    15
+                );
+
+                shake = 8;
+
+                if (enemy.hp <= 0) {
+
+                    enemies.splice(
+                        j,
+                        1
+                    );
+
+                    score += 100;
+
+                    createParticles(
+                        enemy.x +
+                        enemy.width / 2,
+
+                        enemy.y +
+                        enemy.height / 2,
+
+                        "#ffaa00",
+
+                        35
+                    );
+
+                    playSound(
+                        180,
+                        0.15
+                    );
+
+                }
+
+                break;
+
+            }
+
+        }
+
+    }
+
+
+    /* ---------------- PLAYER VS ENEMY ---------------- */
+
+    for (
+        let i = enemies.length - 1;
+        i >= 0;
+        i--
+    ) {
+
+        const enemy =
+            enemies[i];
+
+        if (
+            collision(
+                player,
+                enemy
+            )
+        ) {
+
+            enemies.splice(i, 1);
+
+            lives--;
+
+            shake = 20;
+
+            createParticles(
+                player.x +
+                player.width / 2,
+
+                player.y +
+                player.height / 2,
+
+                "#ff0000",
+
+                30
+            );
+
+            playSound(
+                80,
+                0.25
+            );
+
+            if (lives <= 0) {
+
+                endGame();
+
+            }
+
+        }
+
+    }
+
+
+    /* ---------------- PLAYER VS OBSTACLE ---------------- */
+
+    for (
+        let i = obstacles.length - 1;
+        i >= 0;
+        i--
+    ) {
+
+        const obstacle =
+            obstacles[i];
+
+        if (
+            collision(
+                player,
+                obstacle
+            )
+        ) {
+
+            obstacles.splice(i, 1);
+
+            lives--;
+
+            shake = 15;
+
+            if (lives <= 0) {
+
+                endGame();
+
+            }
+
+        }
+
+    }
+
+
+    /* ---------------- COIN COLLECTION ---------------- */
+
+    for (
+        let i = coinsArray.length - 1;
+        i >= 0;
+        i--
+    ) {
+
+        const coin =
+            coinsArray[i];
+
+        const dx =
+            coin.x -
+            (
+                player.x +
+                player.width / 2
+            );
+
+        const dy =
+            coin.y -
+            (
+                player.y +
+                player.height / 2
+            );
+
+        const distance =
+            Math.sqrt(
+                dx * dx +
+                dy * dy
+            );
+
+        if (
+            distance <
+            coin.radius + 45
+        ) {
+
+            coinsArray.splice(i, 1);
+
+            coins++;
+
+            score += 25;
+
+            createParticles(
+                coin.x,
+                coin.y,
+                "#ffd700",
+                15
+            );
+
+            playSound(
+                700,
+                0.08
+            );
+
+        }
+
+    }
+
+
+    /* ---------------- CLEAN OBJECTS ---------------- */
+
+    enemies =
+        enemies.filter(
+            enemy =>
+                enemy.y <
+                GAME_HEIGHT + 200
+        );
+
+
+    coinsArray =
+        coinsArray.filter(
+            coin =>
+                coin.y <
+                GAME_HEIGHT + 100
+        );
+
+
+    obstacles =
+        obstacles.filter(
+            obstacle =>
+                obstacle.y <
+                GAME_HEIGHT + 200
+        );
+
+
+    /* ---------------- SCORE ---------------- */
+
+    score += 0.1;
+
+
+    /* ---------------- BOSS ---------------- */
+
+    if (
+        score >= 1000 &&
+        !bossSpawned
+    ) {
+
+        spawnBoss();
+
+        bossSpawned = true;
+
+    }
+
+
+    /* ---------------- PARTICLES ---------------- */
+
+    particles.forEach(
+        particle => {
+
+            particle.x +=
+                particle.vx;
+
+            particle.y +=
+                particle.vy;
+
+            particle.life--;
+
+        }
+    );
+
+
+    particles =
+        particles.filter(
+            particle =>
+                particle.life > 0
+        );
+
+
+    if (shake > 0) {
+
+        shake--;
+
+    }
+
+
+    updateHUD();
+
+}
+
+
+/* =========================================================
+   BOSS
+========================================================= */
+
+function spawnBoss() {
+
+    enemies.push({
+
+        x:
+            GAME_WIDTH / 2 - 130,
+
+        y: -250,
+
+        width: 260,
+
+        height: 220,
+
+        speed: 2,
+
+        hp: 20,
+
+        maxHp: 20,
+
+        emoji: "👑",
+
+        color: "#ff0000",
+
+        boss: true
+
+    });
+
+}
+
+
+/* =========================================================
+   COLLISION
+========================================================= */
+
+function collision(a, b) {
+
+    return (
+
+        a.x <
+        b.x + b.width &&
+
+        a.x + a.width >
+        b.x &&
+
+        a.y <
+        b.y + b.height &&
+
+        a.y + a.height >
+        b.y
+
+    );
+
+}
+
+
+/* =========================================================
+   PARTICLES
+========================================================= */
+
+function createParticles(
+    x,
+    y,
+    color,
+    amount
+) {
+
+    for (
+        let i = 0;
+        i < amount;
+        i++
+    ) {
+
+        particles.push({
+
+            x: x,
+
+            y: y,
+
+            vx:
+                (Math.random() - 0.5) *
+                12,
+
+            vy:
+                (Math.random() - 0.5) *
+                12,
+
+            size:
+                3 +
+                Math.random() * 7,
+
+            color: color,
+
+            life:
+                20 +
+                Math.random() * 30
+
+        });
+
+    }
+
+}
+
+
+/* =========================================================
+   DRAW BACKGROUND
+========================================================= */
+
+function drawBackground() {
+
+    /* Sky */
+
+    const gradient =
+        ctx.createLinearGradient(
+            0,
+            0,
+            0,
+            GAME_HEIGHT
+        );
+
+    gradient.addColorStop(
+        0,
+        "#10152d"
+    );
+
+    gradient.addColorStop(
+        1,
+        "#050505"
+    );
+
+    ctx.fillStyle =
+        gradient;
+
+    ctx.fillRect(
+        0,
+        0,
+        GAME_WIDTH,
+        GAME_HEIGHT
+    );
+
+
+    /* Road */
+
+    ctx.fillStyle =
+        "#242424";
+
+    ctx.fillRect(
+        120,
+        0,
+        GAME_WIDTH - 240,
+        GAME_HEIGHT
+    );
+
+
+    /* Road borders */
+
+    ctx.fillStyle =
+        "#eeeeee";
+
+    ctx.fillRect(
+        115,
+        0,
+        8,
+        GAME_HEIGHT
+    );
+
+    ctx.fillRect(
+        GAME_WIDTH - 123,
+        0,
+        8,
+        GAME_HEIGHT
+    );
+
+
+    /* Moving road lines */
+
+    ctx.fillStyle =
+        "#dddd00";
+
+    const offset =
+        (Date.now() / 8) %
+        120;
+
+    for (
+        let y = -120 + offset;
+        y < GAME_HEIGHT;
+        y += 120
+    ) {
+
+        ctx.fillRect(
+            GAME_WIDTH / 2 - 5,
+            y,
+            10,
+            60
+        );
+
+    }
+
+
+    /* Side trees */
+
+    ctx.font = "70px Arial";
+
+    for (
+        let y = -100 + offset;
+        y < GAME_HEIGHT;
+        y += 220
+    ) {
+
+        ctx.fillText(
+            "🌴",
+            30,
+            y
+        );
+
+        ctx.fillText(
+            "🌴",
+            GAME_WIDTH - 100,
+            y + 100
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   DRAW PLAYER
+========================================================= */
+
+function drawPlayer() {
+
+    ctx.save();
+
+    ctx.font = "85px Arial";
+
+    ctx.textAlign =
+        "center";
+
+    ctx.textBaseline =
+        "middle";
+
+    ctx.fillText(
+        player.emoji,
+
+        player.x +
+        player.width / 2,
+
+        player.y +
+        player.height / 2
+    );
+
+
+    /* Gun */
+
+    ctx.fillStyle =
+        "#555";
+
+    ctx.fillRect(
+
+        player.x +
+        player.width -
+        5,
+
+        player.y +
+        45,
+
+        55,
+
+        15
+
+    );
+
+    ctx.fillStyle =
+        "#222";
+
+    ctx.fillRect(
+
+        player.x +
+        player.width +
+        35,
+
+        player.y +
+        47,
+
+        20,
+
+        11
+
+    );
+
+    ctx.restore();
+
+}
+
+
+/* =========================================================
+   DRAW ENEMIES
+========================================================= */
+
+function drawEnemies() {
+
+    enemies.forEach(
+        enemy => {
+
+            ctx.save();
+
+            ctx.textAlign =
+                "center";
+
+            ctx.textBaseline =
+                "middle";
+
+            ctx.font =
+                enemy.boss
+                ? "180px Arial"
+                : "80px Arial";
+
+            ctx.fillText(
+
+                enemy.emoji,
+
+                enemy.x +
+                enemy.width / 2,
+
+                enemy.y +
+                enemy.height / 2
+
+            );
+
+
+            /* HP bar */
+
+            if (
+                enemy.maxHp > 1
+            ) {
+
+                const barWidth =
+                    enemy.width;
+
+                const hpWidth =
+                    barWidth *
+                    (
+                        enemy.hp /
+                        enemy.maxHp
+                    );
+
+                ctx.fillStyle =
+                    "#333";
+
+                ctx.fillRect(
+                    enemy.x,
+                    enemy.y - 15,
+                    barWidth,
+                    10
+                );
+
+                ctx.fillStyle =
+                    "#ff2222";
+
+                ctx.fillRect(
+                    enemy.x,
+                    enemy.y - 15,
+                    hpWidth,
+                    10
+                );
+
+            }
+
+            ctx.restore();
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   DRAW BULLETS
+========================================================= */
+
+function drawBullets() {
+
+    bullets.forEach(
+        bullet => {
+
+            ctx.fillStyle =
+                "#ffff00";
+
+            ctx.shadowColor =
+                "#ffff00";
+
+            ctx.shadowBlur = 15;
+
+            ctx.fillRect(
+
+                bullet.x,
+
+                bullet.y,
+
+                bullet.width,
+
+                bullet.height
+
+            );
+
+            ctx.shadowBlur = 0;
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   DRAW COINS
+========================================================= */
+
+function drawCoins() {
+
+    coinsArray.forEach(
+        coin => {
+
+            ctx.save();
+
+            ctx.font =
+                "45px Arial";
+
+            ctx.textAlign =
+                "center";
+
+            ctx.textBaseline =
+                "middle";
+
+            ctx.fillText(
+                "🪙",
+                coin.x,
+                coin.y
+            );
+
+            ctx.restore();
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   DRAW OBSTACLES
+========================================================= */
+
+function drawObstacles() {
+
+    obstacles.forEach(
+        obstacle => {
+
+            ctx.save();
+
+            ctx.font =
+                "90px Arial";
+
+            ctx.textAlign =
+                "center";
+
+            ctx.textBaseline =
+                "middle";
+
+            ctx.fillText(
+
+                obstacle.emoji,
+
+                obstacle.x +
+                obstacle.width / 2,
+
+                obstacle.y +
+                obstacle.height / 2
+
+            );
+
+            ctx.restore();
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   DRAW PARTICLES
+========================================================= */
+
+function drawParticles() {
+
+    particles.forEach(
+        particle => {
+
+            ctx.globalAlpha =
+                particle.life / 40;
+
+            ctx.fillStyle =
+                particle.color;
+
+            ctx.beginPath();
+
+            ctx.arc(
+                particle.x,
+                particle.y,
+                particle.size,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+
+        }
+    );
+
+    ctx.globalAlpha = 1;
+
+}
+
+
+/* =========================================================
+   DRAW
+========================================================= */
+
+function draw() {
+
+    ctx.save();
+
+
+    /* Camera shake */
+
+    if (shake > 0) {
+
+        ctx.translate(
+
+            (
+                Math.random() - 0.5
+            ) * shake,
+
+            (
+                Math.random() - 0.5
+            ) * shake
+
+        );
+
+    }
+
+
+    drawBackground();
+
+    drawCoins();
+
+    drawObstacles();
+
+    drawBullets();
+
+    drawEnemies();
+
+    drawPlayer();
+
+    drawParticles();
+
+
+    ctx.restore();
+
+}
+
+
+/* =========================================================
+   HUD
+========================================================= */
+
+function updateHUD() {
+
+    scoreText.textContent =
+        Math.floor(score);
+
+    livesText.textContent =
+        lives;
+
+    coinsText.textContent =
+        coins;
+
+}
+
+
+/* =========================================================
+   GAME OVER
+========================================================= */
+
+function endGame() {
+
+    gameRunning = false;
+
+    paused = false;
+
+
+    const finalScore =
+        Math.floor(score);
+
+
+    if (
+        finalScore >
+        highScore
+    ) {
+
+        highScore =
+            finalScore;
+
+        localStorage.setItem(
+            "bangabaltuHighScore",
+            highScore
+        );
+
+    }
+
+
+    finalScoreText.textContent =
+        finalScore;
+
+    highScoreText.textContent =
+        highScore;
+
+
+    document
+        .getElementById(
+            "gameOverScreen"
+        )
+        .classList
+        .remove("hidden");
+
+
+    playSound(
+        100,
+        0.5
+    );
+
+}
+
+
+/* =========================================================
+   SIMPLE SOUND
+========================================================= */
+
+function playSound(
+    frequency,
+    duration
+) {
+
+    try {
+
+        const AudioContext =
+            window.AudioContext ||
+            window.webkitAudioContext;
+
+        const audio =
+            new AudioContext();
+
+        const oscillator =
+            audio.createOscillator();
+
+        const gain =
+            audio.createGain();
+
+
+        oscillator.frequency.value =
+            frequency;
+
+        oscillator.type =
+            "square";
+
+
+        gain.gain.setValueAtTime(
+            0.08,
+            audio.currentTime
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            audio.currentTime +
+            duration
+        );
+
+
+        oscillator.connect(gain);
+
+        gain.connect(
+            audio.destination
+        );
+
+
+        oscillator.start();
+
+        oscillator.stop(
+            audio.currentTime +
+            duration
+        );
+
+    }
+    catch (error) {
+
+        console.log(
+            "Audio unavailable"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   GAME LOOP
+========================================================= */
+
+function gameLoop() {
+
+    update();
+
+    draw();
+
+    requestAnimationFrame(
+        gameLoop
+    );
+
+}
+
+
+/* START LOOP */
+
+gameLoop();
+
+</script>
+
+</body>
+</html>
