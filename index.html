@@ -444,6 +444,9 @@ playerImage.src = "assets/player.png";
 
       const enemyImage = new Image();
 enemyImage.src = "assets/enemy.png";
+
+      const killSound = new Audio("assets/kill.mp3");
+killSound.volume = 0.7;
       
 const player = {
 
@@ -1070,12 +1073,16 @@ function update() {
 
                 if (enemy.hp <= 0) {
 
-                    enemies.splice(
-                        j,
-                        1
-                    );
+    killSound.currentTime = 0;
+    killSound.play();
 
-                    score += 100;
+    enemies.splice(
+        j,
+        1
+    );
+
+    score += 100;
+
 
                     createParticles(
                         enemy.x +
